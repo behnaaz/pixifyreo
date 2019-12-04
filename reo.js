@@ -77,9 +77,6 @@ function findNode(position) {
 }
 
 function onPointerDown(event) {
-    if (window.prePoint)
-        console.log("b4from" + window.prePoint.x + "," + window.prePoint.y);
-
     const newPosition = { x: event.data.global.x, y: event.data.global.y };
     console.log(window.prePoint);
     if (window.drawingMode === 'Node') {
@@ -92,6 +89,7 @@ function onPointerDown(event) {
         console.log("from" + window.prePoint.x + "," + window.prePoint.y + "to " + newPosition.x + " , " + newPosition.y);
         if (found !== null) {
             channel(window.prePoint, found);
+            window.prePoint = { x: found.x, y: found.y };
         }
     }
     console.log(points);
