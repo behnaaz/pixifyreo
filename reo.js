@@ -14,27 +14,25 @@ function windowLoad() {
 }
 
 function reportPoints() {
-    var result = "";
+    var result = [];
     for (var i = 0; i < points.length; i++) {
         var type = 'rep';
-        var temp = 'node' + i + ' : [' + points[i].x + ',' + points[i].y + ']' + ' : ' + type;
-        result += (result.length === 0 ? temp : (',' + temp));
+        result.push({ id: 'node' + i, nodeType: type, x: points[i].x, y: points[i].y });
     }
     return result;
 }
 
 function reportChannels() {
-    var result = "";
+    var result = [];
     for (var i = 0; i < kanals.length; i++) {
         var type = 'sync';
-        var temp = 'channel' + i + ' : [' + kanals[i].source.x + ',' + kanals[i].source.y + ']' + '->' + kanals[i].target.x + ',' + kanals[i].target.y + '] : ' + type;
-        result += (result.length === 0 ? temp : (',' + temp));
+        result.push({ id: 'channel' + i, source: kanals[i].source, target: kanals[i].target, channelType: type });
     }
     return result;
 }
 
 function showResult() {
-    document.getElementById('result').innerText = reportPoints() + " " + reportChannels();
+    document.getElementById('result').innerText = JSON.stringify({ nodes: reportPoints(), channels: reportChannels() });
 }
 
 function mode(mod) {
@@ -60,7 +58,7 @@ function findNode(position) {
             minIndex = i;
         }
     }
-    return { x: points[minIndex].x, y: points[minIndex].y };
+    return { x: points[minIndex].x, y: points[minIndex].y, id: minIndex };
 }
 
 function onPointerDown(event) {
@@ -76,12 +74,14 @@ function onPointerDown(event) {
 
 function drawNode(newPosition) {
     var old = findNode({ x: newPosition.x, y: newPosition.y });
-    if (old !== null && distance({ x: old.x, y: old.y }, { x: newPosition.x, y: newPosition.y }) < 400) {
+    if (old && distance({ x: old.x, y: old.y }, { x: newPosition.x, y: newPosition.y }) < 400) {
         return;
     }
-    points.push(newPosition);
-    graphics.drawCircle(newPosition.x, newPosition.y, 20);
     graphics.beginFill(0xAA4F08);
+
+    graphics.drawCircle(newPosition.x, newPosition.y, 20);
+    points.push(newPosition);
+
 }
 
 function drawChannel(newPosition) {
@@ -96,7 +96,7 @@ function drawChannel(newPosition) {
     channel(window.prePoint, found);
     drawNode(window.prePoint);
     drawNode(found);
-    kanals.push({ source: { x: found.x, y: found.y }, target: { x: window.prePoint.x, y: window.prePoint.y } });
+    kanals.push({ source: found.id, target: findNode(window.prePoint).id });
     window.prePoint = { x: found.x, y: found.y };
 }
 
