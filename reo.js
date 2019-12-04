@@ -53,6 +53,28 @@ function mode(mod) {
     window.drawingMode = (mod === 'Node') ? 'Node' : 'Channel';
 }
 
+function distance(p1, p2) {
+    return ((p1.x - p2.x) * (p1.x - p2.x)) + ((p1.y - p2.y) * (p1.y - p2.y));
+}
+
+function findNode(position) {
+    if (points.length === 0) {
+        return null;
+    }
+    var minIndex = 0;
+    var min = distance({ x: position.x, y: position.y }, { x: points[0].x, y: points[0].y });
+    console.log("min " + min)
+    for (var i = 1; i < points.length; i++) {
+        var cur = distance({ x: position.x, y: position.y }, { x: points[i].x, y: points[i].y })
+        console.log("cur " + cur)
+
+        if (cur < min) {
+            min = cur;
+            minIndex = i;
+        }
+    }
+    return { x: points[minIndex].x, y: points[minIndex].y };
+}
 
 function onPointerDown(event) {
     if (window.prePoint)
@@ -65,9 +87,12 @@ function onPointerDown(event) {
         graphics.drawCircle(newPosition.x, newPosition.y, 20);
         window.prePoint = { x: newPosition.x, y: newPosition.y };
     } else if (window.drawingMode === 'Channel' && window.prePoint !== null) {
+        var found = findNode(newPosition);
+        console.log("Found " + found.x + "   " + found.y);
         console.log("from" + window.prePoint.x + "," + window.prePoint.y + "to " + newPosition.x + " , " + newPosition.y);
-
-        channel(window.prePoint, newPosition);
+        if (found !== null) {
+            channel(window.prePoint, found);
+        }
     }
     console.log(points);
 }
@@ -80,7 +105,7 @@ function channel(src, dest) {
     realPath.angle = 2; //???
     app.stage.addChild(realPath);
 
-    console.log("from" + src.x + "," + src.y + "to " + dest.x + " , " + dest.y);
+    console.log("channel from" + src.x + "," + src.y + "to " + dest.x + " , " + dest.y);
 }
 
 /*
