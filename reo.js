@@ -4,6 +4,7 @@ const app = new PIXI.Application({
     antialias: true
 });
 var points = [];
+var prePoint = null;
 
 function windowload() {
     document.body.appendChild(app.view);
@@ -35,21 +36,16 @@ function windowload() {
     }
 
     for (var i = 0; i < channels.length; i++) {
-
         const realPath = new PIXI.Graphics();
         realPath.lineStyle(2, 0xFFFFFF, 1);
         var src = nodes[channels[i][0]];
         var dest = nodes[channels[i][1]];
         realPath.moveTo(src[0], src[1]);
         realPath.lineTo(dest[0], dest[1]);
-
         realPath.position.x = rad;
         realPath.position.y = rad;
-
         app.stage.addChild(realPath);
     }
-
-
     app.stage.addChild(graphics);
 }
 
@@ -59,27 +55,32 @@ function mode(mod) {
 
 
 function onPointerDown(event) {
+    if (window.prePoint)
+        console.log("b4from" + window.prePoint.x + "," + window.prePoint.y);
 
-    const newPosition = event.data.global;
-
+    const newPosition = { x: event.data.global.x, y: event.data.global.y };
+    console.log(window.prePoint);
     if (window.drawingMode === 'Node') {
-        // points = points.push(newPosition.x);
+        points.push(newPosition);
         graphics.drawCircle(newPosition.x, newPosition.y, 20);
-        console.log(points);
-    } else {
-        channel([40, 30], [newPosition.x, newPosition.y]);
+        window.prePoint = { x: newPosition.x, y: newPosition.y };
+    } else if (window.drawingMode === 'Channel' && window.prePoint !== null) {
+        console.log("from" + window.prePoint.x + "," + window.prePoint.y + "to " + newPosition.x + " , " + newPosition.y);
+
+        channel(window.prePoint, newPosition);
     }
+    console.log(points);
 }
 
 function channel(src, dest) {
     const realPath = new PIXI.Graphics();
     realPath.lineStyle(2, 0xFFFFFF, 1);
-
-    realPath.moveTo(src[0], src[1]);
-    realPath.lineTo(dest[0], dest[1]);
-    //realPath.angle = 2;
-
+    realPath.moveTo(src.x, src.y);
+    realPath.lineTo(dest.x, dest.y);
+    realPath.angle = 2; //???
     app.stage.addChild(realPath);
+
+    console.log("from" + src.x + "," + src.y + "to " + dest.x + " , " + dest.y);
 }
 
 /*
@@ -88,16 +89,13 @@ function channel(src, dest) {
 			antialias: true
 		});
 		document.body.appendChild(app.view);
-
 		const graphics = new PIXI.Graphics();
-
 		var rad = 10;
 		var nodes = [
 			[40, 30, 'a', 'left'],
 			[100, 400, 'b', 'up'],
 			[130, 300, 'c', 'right'],
-          			[400, 230, 'temp', 'left'],
-
+          	[400, 230, 'temp', 'left']
 		];
 		var channels = [
 			[0, 1, 'sync'],
@@ -109,7 +107,6 @@ function channel(src, dest) {
 		graphics.beginFill(0xAA4F08);
 		graphics.drawRect(530, 50, 140, 100);
 		graphics.endFill();
-
 		// Circle + line style 1
 		for (var i = 0; i < nodes.length; i++) {
 			graphics.lineStyle(2, 0xFEEB77, 1);
@@ -117,9 +114,7 @@ function channel(src, dest) {
 			graphics.drawCircle(nodes[i][0], nodes[i][1], rad);
 			graphics.endFill();
 		}
-
 		for (var i = 0; i < channels.length; i++) {
-
 			const realPath = new PIXI.Graphics();
 			realPath.lineStyle(2, 0xFFFFFF, 1);
 			var src = nodes[channels[i][0]];
@@ -128,10 +123,7 @@ function channel(src, dest) {
 			realPath.moveTo(src[0], src[1]);
 			realPath.lineTo(dest[0], dest[1]);
 			//realPath.angle = 2;
-
 			app.stage.addChild(realPath);
 		}
-
-
 		app.stage.addChild(graphics);
 	};*/
