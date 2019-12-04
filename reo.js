@@ -8,44 +8,7 @@ var prePoint = null;
 
 function windowload() {
     document.body.appendChild(app.view);
-
     app.renderer.plugins.interaction.on('mousedown', onPointerDown);
-
-    var rad = 10;
-    var nodes = [
-        [20, 30, 'a', 'left'],
-        [100, 400, 'b', 'up'],
-        [130, 300, 'c', 'right']
-    ];
-    var channels = [
-        [0, 1, 'sync'],
-        [1, 2, 'fifo']
-    ];
-    // Rectangle 2
-    graphics.lineStyle(2, 0xFFFFFF, 1);
-    graphics.beginFill(0xAA4F08);
-    graphics.drawRect(530, 50, 140, 100);
-    graphics.endFill();
-
-    // Circle + line style 1
-    for (var i = 0; i < nodes.length; i++) {
-        graphics.lineStyle(2, 0xFEEB77, 1);
-        graphics.beginFill(0x650A5A, 1);
-        graphics.drawCircle(nodes[i][0], nodes[i][1], rad);
-        graphics.endFill();
-    }
-
-    for (var i = 0; i < channels.length; i++) {
-        const realPath = new PIXI.Graphics();
-        realPath.lineStyle(2, 0xFFFFFF, 1);
-        var src = nodes[channels[i][0]];
-        var dest = nodes[channels[i][1]];
-        realPath.moveTo(src[0], src[1]);
-        realPath.lineTo(dest[0], dest[1]);
-        realPath.position.x = rad;
-        realPath.position.y = rad;
-        app.stage.addChild(realPath);
-    }
     app.stage.addChild(graphics);
 }
 
@@ -80,19 +43,31 @@ function onPointerDown(event) {
     const newPosition = { x: event.data.global.x, y: event.data.global.y };
     console.log(window.prePoint);
     if (window.drawingMode === 'Node') {
-        points.push(newPosition);
-        graphics.drawCircle(newPosition.x, newPosition.y, 20);
-        window.prePoint = { x: newPosition.x, y: newPosition.y };
-    } else if (window.drawingMode === 'Channel' && window.prePoint !== null) {
+        drawNode(newPosition);
+    } else if (window.drawingMode === 'Channel') {
+        drawChannel({ x: newPosition.x, y: newPosition.y });
+    }
+    console.log(points);
+}
+
+function drawNode(newPosition) {
+    points.push(newPosition);
+    graphics.drawCircle(newPosition.x, newPosition.y, 20);
+    graphics.beginFill(0xAA4F08);
+}
+
+function drawChannel(newPosition) {
+    if (window.prePoint !== null) {
         var found = findNode(newPosition);
-        console.log("Found " + found.x + "   " + found.y);
-        console.log("from" + window.prePoint.x + "," + window.prePoint.y + "to " + newPosition.x + " , " + newPosition.y);
         if (found !== null) {
             channel(window.prePoint, found);
             window.prePoint = { x: found.x, y: found.y };
+            drawNode(window.prePoint);
+            drawNode(found);
         }
+    } else {
+        window.prePoint = { x: newPosition.x, y: newPosition.y };
     }
-    console.log(points);
 }
 
 function channel(src, dest) {
@@ -105,48 +80,3 @@ function channel(src, dest) {
 
     console.log("channel from" + src.x + "," + src.y + "to " + dest.x + " , " + dest.y);
 }
-
-/*
-	var drawer = new function {	
-		const app = new PIXI.Application({
-			antialias: true
-		});
-		document.body.appendChild(app.view);
-		const graphics = new PIXI.Graphics();
-		var rad = 10;
-		var nodes = [
-			[40, 30, 'a', 'left'],
-			[100, 400, 'b', 'up'],
-			[130, 300, 'c', 'right'],
-          	[400, 230, 'temp', 'left']
-		];
-		var channels = [
-			[0, 1, 'sync'],
-			[1, 2, 'fifo'],
-            [0, 3, '??']
-		];
-		// Rectangle 2
-		graphics.lineStyle(2, 0xFFFFFF, 1);
-		graphics.beginFill(0xAA4F08);
-		graphics.drawRect(530, 50, 140, 100);
-		graphics.endFill();
-		// Circle + line style 1
-		for (var i = 0; i < nodes.length; i++) {
-			graphics.lineStyle(2, 0xFEEB77, 1);
-			graphics.beginFill(0x650A5A, 1);
-			graphics.drawCircle(nodes[i][0], nodes[i][1], rad);
-			graphics.endFill();
-		}
-		for (var i = 0; i < channels.length; i++) {
-			const realPath = new PIXI.Graphics();
-			realPath.lineStyle(2, 0xFFFFFF, 1);
-			var src = nodes[channels[i][0]];
-			var dest = nodes[channels[i][1]];
-          
-			realPath.moveTo(src[0], src[1]);
-			realPath.lineTo(dest[0], dest[1]);
-			//realPath.angle = 2;
-			app.stage.addChild(realPath);
-		}
-		app.stage.addChild(graphics);
-	};*/
